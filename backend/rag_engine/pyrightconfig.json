@@ -1,0 +1,9 @@
+{
+  "extraPaths": [
+    ".",
+    "./rag_pipeline"
+  ],
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none",
+  "reportUndefinedVariable": "none"
+}

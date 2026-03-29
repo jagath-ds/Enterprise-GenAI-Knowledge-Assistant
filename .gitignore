@@ -1,0 +1,55 @@
+# =========================
+# Python (Backend)
+# =========================
+__pycache__/
+*.py[cod]
+*.db
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment files (CRITICAL)
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Data / storage
+data/
+
+# Vector DBs
+chroma_db/
+faiss_index/
+*.faiss
+
+# =========================
+# Frontend
+# =========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# IDE / OS
+# =========================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Optional
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

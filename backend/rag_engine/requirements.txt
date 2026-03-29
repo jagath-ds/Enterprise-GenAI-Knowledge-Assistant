@@ -1,0 +1,27 @@
+# ─── Core RAG Pipeline Dependencies ─────────────────────────────────────────
+# Install with: pip install -r requirements.txt
+
+# Chunking & tokenization
+tiktoken>=0.6.0
+
+# Embeddings — BAAI/bge-small-en-v1.5
+sentence-transformers>=2.7.0
+torch>=2.0.0          # CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Vector store — FAISS (primary)
+faiss-cpu>=1.8.0      # swap for faiss-gpu if you have a CUDA GPU
+
+# LLM — local phi3:mini via Ollama
+ollama>=0.2.0
+
+# Document loaders
+pdfplumber>=0.11.0    # PDF text extraction
+python-docx>=1.1.0    # DOCX files
+python-pptx>=0.6.23   # PPTX files
+beautifulsoup4>=4.12.0 # HTML files
+
+# Utilities
+numpy>=1.26.0
+
+# Optional — ChromaDB if you want to switch backends later
+# chromadb>=0.5.0
