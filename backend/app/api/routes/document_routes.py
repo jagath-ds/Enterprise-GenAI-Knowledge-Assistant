@@ -1,12 +1,9 @@
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 import uuid
-
-from app.auth.dependencies import get_vector_store
 from app.db.database import get_db
 from app.services.document_service import delete_document, prepare_indexing
 from app.services.rag_service import perform_indexing
-from rag_engine.rag_pipeline.vectorstore.store import VectorStore
 from app.services.azure_storage import AzureStorageService
 from app.db.models import Document
 from app.schemas.document_schema import DocumentStatus
@@ -106,15 +103,9 @@ def index_document(
 @router.delete("/{document_id}")
 def delete_document_api(
     document_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    vector_store: VectorStore = Depends(get_vector_store),
+    db: Session = Depends(get_db),  # vector_store removed entirely
 ):
     try:
-        return delete_document(
-            document_id=document_id,
-            db=db,
-            vector_store=vector_store,
-        )
-
+        return delete_document(document_id=document_id, db=db)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

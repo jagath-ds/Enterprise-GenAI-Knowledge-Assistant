@@ -9,6 +9,7 @@ from app.db.models import Document
 from app.schemas.document_schema import DocumentStatus, DocumentUploadResponse
 from app.core.config import settings
 from app.utils.logger import log_event
+from app.core.rag_pipeline import get_pipeline
 
 azure_service = AzureStorageService()
 
@@ -83,7 +84,7 @@ def prepare_indexing(document_id:uuid.UUID, db: Session, force:bool = False):
 
     return document.document_id
 
-def delete_document(document_id: uuid.UUID, db: Session, vector_store):
+def delete_document(document_id: uuid.UUID, db: Session):
     
     document = db.get(Document, document_id)
 
@@ -97,8 +98,10 @@ def delete_document(document_id: uuid.UUID, db: Session, vector_store):
     if blob_name:
         azure_service.delete_file(blob_name)
 
-    # 🔥 Step 2: Delete from FAISS
-    vector_store.delete_document(str(document_id))
+    # Step 2: Delete from vector store via pipeline singleton
+    rag = get_pipeline()
+    rag.delete_document(str(document_id))
+    rag.store.persist()
 
     # 🔥 Step 3: Delete from DB
     log_event(
@@ -110,7 +113,4 @@ def delete_document(document_id: uuid.UUID, db: Session, vector_store):
     )
     db.delete(document)
     db.commit()
-
-    vector_store.persist()
-
     return {"status": "deleted", "document_id": str(document_id)}

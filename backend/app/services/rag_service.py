@@ -106,15 +106,28 @@ def perform_indexing(document_id: uuid.UUID, force: bool = False) -> None:
                     detail="No content found in document.",
                 )
 
+            if force:
+                rag.delete_document(str(document_id))
+                rag.store.persist()
+
             for doc in documents:
-                if force:
+                current_document = db.get(Document, document_id)
+                if current_document is None:
                     rag.delete_document(str(document_id))
+                    rag.store.persist()
+                    return
 
                 rag.index_pages(
                     pages       = doc["pages"],
                     doc_id      = str(document_id),
                     source_path = doc["source_path"],
                 )
+
+            current_document = db.get(Document, document_id)
+            if current_document is None:
+                rag.delete_document(str(document_id))
+                rag.store.persist()
+                return
 
             rag.store.persist()
 

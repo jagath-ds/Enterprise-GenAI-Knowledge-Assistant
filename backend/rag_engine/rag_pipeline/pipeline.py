@@ -107,11 +107,20 @@ class RAGPipeline:
             batch_size = cfg.embedding_batch_size,
             cache      = cfg.embedding_cache,
         )
-        store = build_vector_store(
-            backend         = cfg.vector_backend,
-            persist_dir     = cfg.vector_persist_dir,
-            collection_name = cfg.collection_name,
-        )
+        # ✅ Fixed
+        if cfg.vector_backend == "faiss":
+            store = build_vector_store(
+                backend    = "faiss",
+                index_path = cfg.vector_persist_dir,  # FAISS expects index_path not persist_dir
+            )
+        elif cfg.vector_backend == "chroma":
+            store = build_vector_store(
+                backend         = "chroma",
+                persist_dir     = cfg.vector_persist_dir,
+                collection_name = cfg.collection_name,
+            )
+        else:
+            raise ValueError(f"Unknown vector backend: {cfg.vector_backend!r}")
         retriever = RetrievalEngine(
             embedding_engine = embedder,
             vector_store     = store,

@@ -78,6 +78,12 @@ function StatusBadge({ status }) {
     pending: { classes: "bg-blue-100 text-blue-700", label: "Pending" },
     success: { classes: "bg-green-100 text-green-700", label: "Success" },
     failed: { classes: "bg-red-100 text-red-700", label: "Failed" },
+    uploaded: { classes: "bg-slate-100 text-slate-700", label: "Uploaded" },
+    indexing: {
+      classes: "bg-yellow-100 text-yellow-700",
+      label: "Indexing...",
+    },
+    indexed: { classes: "bg-sky-100 text-sky-700", label: "Indexed" },
     Indexed: { classes: "bg-sky-100 text-sky-700", label: "Indexed" },
     "Reindexing...": {
       classes: "bg-yellow-100 text-yellow-700",
@@ -160,11 +166,15 @@ export default function AdminPortal() {
     fetchLogs();
 
     const interval = setInterval(() => {
+      fetchDocs();
       fetchLogs();
-    }, 5000); // every 5 seconds
+    }, 10000); // every 10 seconds
 
     return () => clearInterval(interval);
   }, []);
+
+  const isDocumentBusy = (status) =>
+    status === "indexing" || status === "Reindexing...";
 
   const fetchDocs = async () => {
     const data = await getDocuments();
@@ -172,7 +182,7 @@ export default function AdminPortal() {
       data.map((doc) => ({
         id: doc.id,
         name: doc.filename,
-        status: "Indexed",
+        status: doc.status || "uploaded",
         uploadedAt: doc.created_at || null,
         size: doc.size || null,
       })),
@@ -232,6 +242,12 @@ const handleOverwrite = async () => {
 };
 
   const handleDelete = (id, name) => {
+    const document = documents.find((doc) => doc.id === id);
+    if (document && isDocumentBusy(document.status)) {
+      addToast("This document is still indexing. Please wait.", "info");
+      return;
+    }
+
     askConfirm(
       `Delete "${name}"? This cannot be undone.`,
       async () => {
@@ -246,6 +262,12 @@ const handleOverwrite = async () => {
   };
 
   const handleReindex = (id) => {
+    const document = documents.find((doc) => doc.id === id);
+    if (document && isDocumentBusy(document.status)) {
+      addToast("This document is already indexing. Please wait.", "info");
+      return;
+    }
+
     setDocuments((prev) =>
       prev.map((doc) =>
         doc.id === id ? { ...doc, status: "Reindexing..." } : doc,
@@ -613,13 +635,23 @@ const handleOverwrite = async () => {
                         <div className="flex gap-2 justify-end">
                           <button
                             onClick={() => handleReindex(doc.id)}
-                            className="px-3 py-1.5 rounded-md border-[1.5px] border-indigo-100 bg-indigo-50 text-indigo-500 text-xs font-semibold hover:bg-indigo-100 transition-colors"
+                            disabled={isDocumentBusy(doc.status)}
+                            className={`px-3 py-1.5 rounded-md border-[1.5px] border-indigo-100 bg-indigo-50 text-indigo-500 text-xs font-semibold transition-colors ${
+                              isDocumentBusy(doc.status)
+                                ? "cursor-not-allowed opacity-60"
+                                : "cursor-pointer hover:bg-indigo-100"
+                            }`}
                           >
                             ↺ Reindex
                           </button>
                           <button
                             onClick={() => handleDelete(doc.id, doc.name)}
-                            className="px-3 py-1.5 rounded-md border-[1.5px] border-red-100 bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition-colors"
+                            disabled={isDocumentBusy(doc.status)}
+                            className={`px-3 py-1.5 rounded-md border-[1.5px] border-red-100 bg-red-50 text-red-500 text-xs font-semibold transition-colors ${
+                              isDocumentBusy(doc.status)
+                                ? "cursor-not-allowed opacity-60"
+                                : "cursor-pointer hover:bg-red-100"
+                            }`}
                           >
                             🗑 Delete
                           </button>
